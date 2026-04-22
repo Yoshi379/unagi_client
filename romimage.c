@@ -26,6 +26,18 @@ static const uint8_t NES_HEADER_INIT[NES_HEADER_SIZE] = {
 static 
 void nesheader_set(const struct romimage *r, uint8_t *header)
 {
+	long mappernum = r->mappernum;
+	long submappernum = r->submappernum;
+
+	if(!isAValidMapperNumber(mappernum)) {
+		fprintf(stdout, "Warning : Parameter \"mappernum = %ld\" invalid. Set to 0.\n", mappernum);
+		mappernum = 0;
+	}
+	if(!isAValidSubmapperNumber(submappernum)) {
+		fprintf(stdout, "Warning : Parameter \"submappernum = %ld\" invalid. Set to 0.\n", submappernum);
+		submappernum = 0;
+	}
+
 	memcpy(header, NES_HEADER_INIT, NES_HEADER_SIZE);
 	header[4] = r->cpu_rom.size / PROGRAM_ROM_MIN;
 	header[5] = r->ppu_rom.size / CHARCTER_ROM_MIN;
@@ -36,8 +48,15 @@ void nesheader_set(const struct romimage *r, uint8_t *header)
 		header[6] |= 0x02;
 	}
 	//4 screen は無視
-	header[6] |= (r->mappernum & 0x0f) << 4;
-	header[7] |= r->mappernum & 0xf0;
+	header[6] |= (mappernum & 0x0f) << 4;
+	header[7] |= mappernum & 0xf0;
+	if((mappernum>0xff) || (submappernum>0)) {
+		// NES 2.0 header (flags7 : bit3=1 / bit2=0)
+		header[7] |= 0x08; // bit3 set to 1
+		header[7] &= 0xfb; // bit2 set to 0
+		header[8] |= (mappernum >> 8) & 0x0f;
+		header[8] |= (submappernum & 0x0f) << 4;
+	}
 }
 
 /*
@@ -102,7 +121,7 @@ uint32_t nesfile_create(const struct textcontrol *l, struct romimage *r, const w
 		return 0;
 	}
 	//修正済み ROM 情報表示
-	l->append(l->object, wgT("%s, mapper %d\n"), romfilename, (int) r->mappernum);
+	l->append(l->object, wgT("%s, Mapper %d / Submapper %d\n"), romfilename, (int) r->mappernum, (int) r->submappernum);
 	rominfo_print(l, &(r->cpu_rom));
 	rominfo_print(l, &(r->ppu_rom));
 

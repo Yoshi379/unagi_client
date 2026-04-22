@@ -43,7 +43,7 @@ enum vram_mirroring{
 };
 struct romimage{
 	struct memory cpu_rom, ppu_rom, cpu_ram;
-	long mappernum;
+	long mappernum, submappernum;
 	enum vram_mirroring mirror;
 	int backupram;
 };
@@ -51,6 +51,10 @@ struct romimage{
 enum{
 	MEMORY_AREA_CPU_RAM, MEMORY_AREA_CPU_ROM, MEMORY_AREA_PPU
 };
+
+/* Macros functions for NES 2.0 headers support */
+#define isAValidMapperNumber(mappernum) ((mappernum >= 0) && (mappernum <= 0xFFF))
+#define isAValidSubmapperNumber(submappernum) ((submappernum >= 0) && (submappernum <= 0xF))
 
 bool nesbuffer_malloc(struct romimage *r, int mode);
 uint32_t nesfile_create(const struct textcontrol *l, struct romimage *r, const wgChar *romfilename);
