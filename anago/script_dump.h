@@ -19,7 +19,7 @@ struct dump_config{
 		uint8_t bitbuffer;
 		struct gauge gauge;
 	}cpu, ppu;
-	long mappernum;
+	long mappernum, submappernum;
 	bool progress;
 	bool battery;
 	unsigned long crc;

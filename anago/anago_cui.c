@@ -200,8 +200,9 @@ static void dump(int c, wgChar **v, const struct reader_driver *r)
 	cui_gauge_new(&config.ppu.gauge, wgT("Charcter ROM"), 1, -1);
 	config.except = except;
 	config.mappernum = -1;
+	config.submappernum = -1;
 	config.battery = false;
-	if(c == 5){
+	if(c >= 5){
 		const wgChar *t = v[4];
 		if(*t == 'b' || *t == 'B'){
 			config.battery = true;
@@ -213,6 +214,27 @@ static void dump(int c, wgChar **v, const struct reader_driver *r)
 #else
 			config.mappernum = atoi(t);
 #endif
+			if(isAValidMapperNumber(config.mappernum)){
+				fprintf(stdout, "Using command-line mappernum value : %ld\n", config.mappernum);
+			}
+			else{
+				fprintf(stdout, "Using script mappernum value\n");
+				config.mappernum = -1;
+			}
+		}
+	}
+	if(c == 6){
+#ifdef _UNICODE
+		config.submappernum = _wtoi(v[5]);
+#else
+		config.submappernum = atoi(v[5]);
+#endif
+		if(isAValidSubmapperNumber(config.submappernum)){
+			fprintf(stdout, "Using command-line submappernum value : %ld\n", config.submappernum);
+		}
+		else{
+			fprintf(stdout, "Using script submappernum value\n");
+			config.submappernum = -1;
 		}
 	}
 	log_set(&config.log);
@@ -288,7 +310,7 @@ static void crc32_display(int c, wgChar **v)
 
 static void usage(const wgChar *v)
 {
-	PUTS(wgT("famicom bus simluator 'anago'"));
+	PUTS(wgT("famicom bus simulator 'anago'"));
 	PRINTF(wgT("%s [mode] [script] [target] ....\n"), v);
 	PUTS(wgT("d - ROM dump with kazzo"));
 	PUTS(wgT("fF- flash program with kazzo"));
@@ -345,7 +367,7 @@ int main(int c, char **v)
 			break;
 		default:
 			usage(v[0]);
-			PUTS(wgT("mode are d, D, f, g"));
+			PUTS(wgT("mode are d, D, f, F"));
 			break;
 		}
 #ifdef _UNICODE

@@ -181,12 +181,13 @@ static SQInteger nesfile_save(HSQUIRRELVM v)
 
 	struct romimage image;
 	long mirrorfind;
-	r = qr_argument_get(v, 2, &image.mappernum, &mirrorfind);
+	r = qr_argument_get(v, 3, &image.mappernum, &image.submappernum, &mirrorfind);
 	if(SQ_FAILED(r)){
 		return r;
 	}
 	image.cpu_rom = d->cpu.memory;
 	image.cpu_ram.data = NULL;
+	image.cpu_ram.size = 0;
 	image.ppu_rom = d->ppu.memory;
 	image.mirror = MIRROR_PROGRAMABLE;
 	if(mirrorfind == 1){
@@ -359,7 +360,7 @@ static bool script_execute(HSQUIRRELVM v, struct dump_config *d)
 	}else{
 		SQRESULT r = qr_call(
 			v, wgT("dump"), (SQUserPointer) d, d->script, 
-			3, d->mappernum, d->cpu.increase, d->ppu.increase
+			4, d->mappernum, d->submappernum, d->cpu.increase, d->ppu.increase
 		);
 		if(SQ_FAILED(r)){
 			ret = false;
@@ -385,6 +386,10 @@ static void dump_memory_driver_init(struct dump_memory_driver *dd, enum memory_a
 
 bool script_dump_execute(struct dump_config *d)
 {
+#ifdef __linux__
+	// Under Linux systems, two blank lines are needed to avoid a display bug.
+	fprintf(stdout, "\n\n");
+#endif
 	dump_memory_driver_init(&d->cpu, MEMORY_ATTR_WRITE);
 	d->cpu.memory.name = wgT("Program");
 	

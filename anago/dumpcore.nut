@@ -9,7 +9,7 @@ function dumpsize_get(region, m, increase)
 	return dumpsize;
 }
 
-function dump(d, script, mappernum, increase_cpu, increase_ppu)
+function dump(d, script, mappernum, submappernum, increase_cpu, increase_ppu)
 {
 	const mega = 0x20000;
 	const INCREASE_AUTO = 11;
@@ -20,6 +20,14 @@ function dump(d, script, mappernum, increase_cpu, increase_ppu)
 	local ppuarea_memory;
 	if(mappernum == -1){
 		mappernum = board.mappernum;
+	}
+	if(submappernum == -1){
+		if(("board" in getroottable()) && ("submappernum" in board)){
+			submappernum = board.submappernum;
+		}
+		else{
+			submappernum = 0;
+		}
 	}
 	if(board.ppu_rom.size_base == 0){
 		ppuarea_memory = memory_type.RAM;
@@ -46,7 +54,7 @@ function dump(d, script, mappernum, increase_cpu, increase_ppu)
 	if(ppuarea_memory == memory_type.ROM){
 		ppu_dump(d, ppu_dumpsize / board.ppu_rom.banksize, board.ppu_rom.banksize);
 	}
-	nesfile_save(d, mappernum, vram);
+	nesfile_save(d, mappernum, submappernum, vram);
 }
 
 function workram_rw(d, script, increase_cpu)
